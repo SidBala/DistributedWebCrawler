@@ -1,0 +1,12 @@
+[Master]
+<IP for Master Node Here>
+
+[Worker]
+<IPs for Worker Nodes Node Here>
+
+[AllNodes:children]
+Master
+Worker
+
+[AllNodes:vars]
+ansible_ssh_user=ubuntu

@@ -1,0 +1,9 @@
+---
+- hosts: Master
+  tasks: 
+  - name: Install Apt Dependencies
+    apt: name=nodejs,npm,phantomjs update_cache=yes
+    sudo: true
+
+
+
