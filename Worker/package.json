@@ -1,0 +1,16 @@
+{
+  "name": "DistributedWebCrawlerWorker",
+  "version": "1.0.0",
+  "description": "Worker node for DistributedWebCrawler",
+  "main": "Worker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sid Bala",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^2.4.2",
+    "fivebeans": "^1.1.1",
+    "log-colors": "^1.0.0"
+  }
+}

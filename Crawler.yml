@@ -1,9 +1,47 @@
 ---
-- hosts: Master
-  tasks: 
-  - name: Install Apt Dependencies
-    apt: name=nodejs,npm,phantomjs update_cache=yes
-    sudo: true
-
-
-
+- hosts: all
+  user: ubuntu
+  sudo: yes
+  tasks:
+  - name: Stop root services
+    shell: forever stopall || /bin/true
+  - name: Stop user services
+    shell: forever stopall || /bin/true
+  - name: Pull down NodeJS, NPM and git
+    apt: name=nodejs,npm,git update_cache=yes
+  - name: Node Symlink
+    shell: ln -s /usr/bin/nodejs /usr/bin/node || /bin/true
+  - name: Install ForeverJS
+    shell: npm install -g forever
+- hosts: Worker    
+  user: ubuntu
+  tasks:
+  - name: Install PhantomJS
+    sudo: yes
+    apt: name=phantomjs  update_cache=yes
+  - name: Clean up scripts
+    shell: rm -rf /home/ubuntu/Worker
+  - name: Copy scripts
+    synchronize: src=Worker dest=/home/ubuntu
+  - name: Initialize scripts with dependencies
+    command: chdir=/home/ubuntu/Worker npm install
+  - name: Checkout WebPageReplay from GitHub
+    shell: git clone https://github.com/chromium/web-page-replay.git /home/ubuntu/Worker/WebPageReplay
+  - name: Start replay instance in record mode
+    shell: forever start --killSignal=SIGINT -c python /home/ubuntu/Worker/WebPageReplay/replay.py --record /mnt/test.wpr
+    sudo: yes
+  - name: Start the worker
+    command: chdir=/home/ubuntu/Worker forever start ./Worker.js
+- hosts: Master    
+  user: ubuntu
+  tasks:
+  - name: Install Beanstalkd
+    sudo: yes
+    shell: apt-get install -y beanstalkd
+  - name: Clean up scripts
+    shell: rm -rf /home/ubuntu/Master
+  - name: Copy scripts
+    synchronize: src=Master dest=/home/ubuntu
+  - name: Run the master
+    sudo: yes
+    shell: forever start -c bash /home/ubuntu/Master/Master
