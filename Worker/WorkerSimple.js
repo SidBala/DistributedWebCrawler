@@ -9,7 +9,7 @@ var util = require('util');
 var config = 
 	{
 		// Master that runs beanstalkd
-		'MasterIP' : 'localhost',
+		'MasterIP' : '54.183.156.239',
 		'MasterPort' : 443,
 		
 		// # of instances to spin up for each CPU core on the machine
@@ -24,7 +24,7 @@ var numCPUs = os.cpus().length;
 
 // These are the number of PhantomJS instances we will spin up on this worker
 var numInstances = Math.min(numCPUs * config.ProcMult, config.MaxProc);
-log.debug('Using worker instances:' + numInstances);
+log.debug('Using instances:' + numInstances);
 
 // We are going to fire up some beanstalkd clients - one for each phantomjs instance
 var clientPromises = [];
@@ -65,7 +65,7 @@ function kernel(jobID, payload, client, clientIdx) {
 
 				var endTime = Date.now();
 
-				log.debug('Worker#: ' + clientIdx  + ' |  Done with JobID: ' + jobID + ' | Took: ' + (endTime - startTime).toString() + 'ms');
+				log.debug('Worker#: ' + clientIdx  + ' | Done with:  ' + jobID + ' | Took: ' + (endTime - startTime).toString() + 'ms');
 
 				numWorking--;
 
@@ -76,20 +76,19 @@ function kernel(jobID, payload, client, clientIdx) {
 
 				res();
 			});
-		},Math.random() * 2000);
+		},Math.random() * 1000);
 	});
 }
 
 // Now start listening for jobs and kick off the kernel when we get jobs
 Promise.all(clientPromises).then(function(clients) {
-log.debug('Connected to Beanstalkd on localhost');	
 	clients.forEach(function(client, clientIdx) {
 
 		function reserveAndDispatchJob(client, clientIdx) {
 			client.reserve(function(err, jobID, payload){
 				if(err) return log.error(err);
 				
-				log.debug('Worker#: ' + clientIdx  + ' | Working on JobID: ' + jobID);
+				log.debug('Worker#: ' + clientIdx  + ' | Working on: ' + jobID + ' | Payload: ' + payload);
 				kernel(jobID, payload, client, clientIdx).then(function() {
 					setImmediate(function() {
 						reserveAndDispatchJob(client, clientIdx);	

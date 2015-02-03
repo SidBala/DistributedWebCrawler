@@ -1,2 +1,4 @@
 #!/bin/bash
+
+# We are going to bind beanstalkd to the SSL port 443
 beanstalkd -l 0.0.0.0 -p 443

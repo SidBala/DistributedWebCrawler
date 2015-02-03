@@ -1,0 +1,31 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+  - name: Install Node.js, NPM and git
+    apt: name=nodejs,npm,git
+
+- hosts: Worker    
+  tasks:
+  - name: Install PhantomJS
+    sudo: yes
+    apt: name=phantomjs
+
+  - name: Checkout WebPageReplay from GitHub
+    shell: git clone https://github.com/chromium/web-page-replay.git /home/ubuntu/Worker/WebPageReplay || /bin/true
+
+  - name: Start the worker
+    command: chdir=/home/ubuntu/Worker forever start ./Worker.js
+
+- hosts: Master    
+  tasks:
+  - name: Install Beanstalkd
+    sudo: yes
+    apt: name=beanstalkd
+
+  - name: Copy master scripts
+    synchronize: src=Master dest=/home/ubuntu
+
+  - name: Start the master
+    sudo: yes
+    shell: forever start -c bash /home/ubuntu/Master/Master
